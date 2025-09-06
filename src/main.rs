@@ -43,12 +43,15 @@ where T:
 {
     match size {
         Size { width: 2, height: 2 } => (vec[0][0] * vec[1][1]) - (vec[1][0] * vec[0][1]),
+        Size { width: 3, height: 3 } => {
+            (vec[0][0] * vec[1][1] * vec[2][2])
+        }
         _ => todo!(),
     }
 }
 
 fn main() -> io::Result<()> {
-    let size = Size { width: 2, height: 2 };
+    let size = Size { width: 3, height: 3 };
     let vec: Vec<Vec<i32>> = read_matrix(&size);
 
     for row in &vec {
