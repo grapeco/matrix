@@ -3,16 +3,11 @@
 with pkgs;
 
 mkShell {
-  nativeBuildInputs = with pkgs; [ pkg-config ];
   buildInputs = with pkgs; [
     (pkgs.fenix.complete.withComponents [
       "cargo"
-      "clippy"
-      "rust-src"
       "rustc"
-      "rustfmt"
-      "llvm-tools-preview"
-      "rustc-codegen-cranelift-preview"
+      "rust-src"
     ])
     rust-analyzer-nightly
   ];
