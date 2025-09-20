@@ -67,7 +67,7 @@ fn five<T: Copy + Num + Neg<Output = T>>(vec: &Vec<Vec<T>>) -> T {
     vec[0][4] * four(&erase_vec(vec, 4)) 
 }
 
-fn order_determinant<T: Copy + Num + Debug + Neg<Output = T>>(vec: &Vec<Vec<T>>, size: &Size) -> T {
+fn order_determinant<T: Copy + Num + Neg<Output = T>>(vec: &Vec<Vec<T>>, size: &Size) -> T {
     match (size.width, size.height) {
         (2, 2) => (vec[0][0] * vec[1][1]) - (vec[1][0] * vec[0][1]),
         (3, 3) => sarrus_rule(vec),
