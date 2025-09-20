@@ -1,4 +1,5 @@
 use std::{
+    fmt::Debug, 
     io, 
     ops::Neg, 
     str::FromStr
@@ -15,8 +16,8 @@ struct Size {
 
 fn read_matrix<T>(size: &Size) -> Vec<Vec<T>>
 where T: Num + FromStr, <T as FromStr>::Err: std::fmt::Debug
-{
-    let mut array = Vec::with_capacity(size.height);
+{  
+    let mut array: Vec<Vec<T>> = Vec::new();
 
     for _ in 0..size.height {
         let mut str = String::new();
@@ -31,6 +32,17 @@ where T: Num + FromStr, <T as FromStr>::Err: std::fmt::Debug
     array
 }
 
+fn erase_vec<T: Copy + Num + Neg<Output = T>>(vec: &Vec<Vec<T>>, column_index: usize) -> Vec<Vec<T>> {
+    let mut erased_vec = vec.clone();
+
+    erased_vec.remove(0);
+    for i in 0..erased_vec.len() {
+        erased_vec[i].remove(column_index);
+    }
+
+    erased_vec
+}
+
 fn sarrus_rule<T: Copy + Num>(vec: &Vec<Vec<T>>) -> T {
     (vec[0][0] * vec[1][1] * vec[2][2]) +
     (vec[0][1] * vec[1][2] * vec[2][0]) +
@@ -40,33 +52,27 @@ fn sarrus_rule<T: Copy + Num>(vec: &Vec<Vec<T>>) -> T {
     (vec[0][2] * vec[1][1] * vec[2][0])
 }
 
-fn algebraic_complement<T: Copy + Num + Neg<Output = T>>(vec: &Vec<Vec<T>>, row_index: usize, column_index: usize) -> T {
-    let mut erased_vec = vec.clone();
-
-    while erased_vec[0].len() > 3 && erased_vec.len() > 3 {
-        erased_vec.remove(0);
-        for i in 0..erased_vec.len() {
-            erased_vec[i].remove(column_index);
-        }
-    }
-
-    if (row_index + column_index) % 2 == 0 {
-        sarrus_rule(&erased_vec)
-    } else {
-        -sarrus_rule(&erased_vec)
-    }
+fn four<T: Copy + Num + Neg<Output = T>>(vec: &Vec<Vec<T>>) -> T {
+    vec[0][0] * sarrus_rule(&erase_vec(&vec, 0)) +
+    vec[0][1] * -sarrus_rule(&erase_vec(&vec, 1)) +
+    vec[0][2] * sarrus_rule(&erase_vec(&vec, 2)) +
+    vec[0][3] * -sarrus_rule(&erase_vec(&vec, 3))    
 }
 
-fn order_determinant<T: Copy + Num + Neg<Output = T>>(vec: &Vec<Vec<T>>, size: &Size) -> T {
+fn five<T: Copy + Num + Neg<Output = T>>(vec: &Vec<Vec<T>>) -> T {
+    vec[0][0] * four(&erase_vec(vec, 0)) +
+    vec[0][1] * -four(&erase_vec(vec, 1)) +
+    vec[0][2] * four(&erase_vec(vec, 2)) +
+    vec[0][3] * -four(&erase_vec(vec, 3)) +
+    vec[0][4] * four(&erase_vec(vec, 4)) 
+}
+
+fn order_determinant<T: Copy + Num + Debug + Neg<Output = T>>(vec: &Vec<Vec<T>>, size: &Size) -> T {
     match (size.width, size.height) {
         (2, 2) => (vec[0][0] * vec[1][1]) - (vec[1][0] * vec[0][1]),
         (3, 3) => sarrus_rule(vec),
-        (4, 4) => {
-            vec[0][0] * algebraic_complement(&vec, 0, 0) +
-            vec[0][1] * algebraic_complement(&vec, 0, 1) +
-            vec[0][2] * algebraic_complement(&vec, 0, 2) +
-            vec[0][3] * algebraic_complement(&vec, 0, 3)
-        }
+        (4, 4) => four(&vec),
+        (5, 5) => five(&vec),
         _ => todo!(),
     }
 }
@@ -86,25 +92,24 @@ fn main() -> io::Result<()> {
     ];
 
     let _test5 = vec![
-        vec![1, 2, 3, 4, 5],
-        vec![6, 7, 8, 9 ,10],
-        vec![11, 12, 13, 14, 15],
-        vec![16, 17, 18, 19, 20],
-        vec![21, 22, 23, 24, 25]
+        vec![4, 2, 0, -2, 1],
+        vec![1, 1, 2, 4, 0],
+        vec![2, -1, 0, 4, 1],
+        vec![5, 2, 1, -2, 4],
+        vec![1, 5, 0, 2, 3]
     ];
 
     let mut size_text = String::new();
-    println!("Choose your matrix size(2, 3, 4):");
+    println!("Choose your matrix size(2, 3, 4, 5):");
     io::stdin().read_line(&mut size_text)?;
 
     let width: usize = size_text.trim().parse().unwrap();
     let height: usize = size_text.trim().parse().unwrap();
 
     println!("Wrie your matrix");
-
     let size = Size { width, height };
-    let vec = read_matrix::<f64>(&size);
-
+    let vec = read_matrix::<f32>(&size);
+    
     println!("{:.2}", order_determinant(&vec, &size));
 
     println!("Press Enter to close programm");
