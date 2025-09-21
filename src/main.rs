@@ -1,5 +1,4 @@
 use std::{
-    fmt::Debug, 
     io, 
     ops::Neg, 
     str::FromStr
@@ -53,18 +52,31 @@ fn sarrus_rule<T: Copy + Num>(vec: &Vec<Vec<T>>) -> T {
 }
 
 fn four<T: Copy + Num + Neg<Output = T>>(vec: &Vec<Vec<T>>) -> T {
-    vec[0][0] * sarrus_rule(&erase_vec(&vec, 0)) +
-    vec[0][1] * -sarrus_rule(&erase_vec(&vec, 1)) +
-    vec[0][2] * sarrus_rule(&erase_vec(&vec, 2)) +
-    vec[0][3] * -sarrus_rule(&erase_vec(&vec, 3))    
+    let mut result = T::zero();
+
+    for i in 0..vec.len() {
+        if i % 2 == 0 {
+            result = result + vec[0][i] * sarrus_rule(&erase_vec(vec, i));
+        } else {
+            result = result + vec[0][i] * -sarrus_rule(&erase_vec(vec, i));
+        }
+    }
+
+    result   
 }
 
 fn five<T: Copy + Num + Neg<Output = T>>(vec: &Vec<Vec<T>>) -> T {
-    vec[0][0] * four(&erase_vec(vec, 0)) +
-    vec[0][1] * -four(&erase_vec(vec, 1)) +
-    vec[0][2] * four(&erase_vec(vec, 2)) +
-    vec[0][3] * -four(&erase_vec(vec, 3)) +
-    vec[0][4] * four(&erase_vec(vec, 4)) 
+    let mut result = T::zero();
+
+    for i in 0..vec.len() {
+        if i % 2 == 0 {
+            result = result + vec[0][i] * four(&erase_vec(vec, i));
+        } else {
+            result = result + vec[0][i] * -four(&erase_vec(vec, i));
+        }
+    }
+
+    result
 }
 
 fn order_determinant<T: Copy + Num + Neg<Output = T>>(vec: &Vec<Vec<T>>, size: &Size) -> T {
@@ -103,17 +115,17 @@ fn main() -> io::Result<()> {
     println!("Choose your matrix size(2, 3, 4, 5):");
     io::stdin().read_line(&mut size_text)?;
 
-    let width: usize = size_text.trim().parse().unwrap();
-    let height: usize = size_text.trim().parse().unwrap();
-
     println!("Wrie your matrix");
-    let size = Size { width, height };
+    let size = Size {
+        width: size_text.trim().parse().unwrap(),
+        height: size_text.trim().parse().unwrap()
+    };
     let vec = read_matrix::<f32>(&size);
     
     println!("{:.2}", order_determinant(&vec, &size));
 
     println!("Press Enter to close programm");
     io::stdin().read_line(&mut "".to_string())?;
-
+    
     Ok(())
 }
